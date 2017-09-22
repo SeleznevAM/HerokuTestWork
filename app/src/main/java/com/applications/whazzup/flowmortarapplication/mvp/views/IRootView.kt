@@ -9,8 +9,8 @@ interface IRootView {
     fun showLoad()
     fun hideLoad()
     fun hideBottomNavigation(isVisible: Boolean)
-    fun showtoolBar()
-    fun hideToolBar()
+    fun showToolbar()
+    fun hideToolbar()
     val currentScreen: IView?
     fun startAct(imageIntent: Intent)
 }

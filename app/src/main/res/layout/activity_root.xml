@@ -8,9 +8,18 @@
     android:layout_height="match_parent"
     tools:context="com.applications.whazzup.flowmortarapplication.ui.activities.RootActivity">
 
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"/>
+    </android.support.design.widget.AppBarLayout>
+
     <FrameLayout
         android:id="@+id/root_frame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"></FrameLayout>
+        android:layout_height="match_parent"/>
 
 </android.support.design.widget.CoordinatorLayout>

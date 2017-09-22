@@ -8,7 +8,12 @@ import com.applications.whazzup.flowmortarapplication.flow.Screen
 import com.applications.whazzup.flowmortarapplication.mvp.models.SplashModel
 import com.applications.whazzup.flowmortarapplication.mvp.presenters.AbstractPresenter
 import com.applications.whazzup.flowmortarapplication.ui.activities.RootActivity
+import com.applications.whazzup.flowmortarapplication.ui.screens.user_list_screen.UserListScreen
 import dagger.Provides
+import flow.Flow
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import mortar.MortarScope
 import javax.inject.Inject
 
@@ -33,9 +38,13 @@ class SplashScreen : AbstractScreen<RootActivity.RootComponent>() {
         }
 
         override fun initToolbar() {
-
+            mRootPresenter.newActionBarBuilder().setVisible(false).build()
         }
 
+        override fun onEnterScope(scope: MortarScope?) {
+            super.onEnterScope(scope)
+            mModel.getUserFromNetworkAndSaveInBd()?.subscribeOn(Schedulers.io())?.observeOn(AndroidSchedulers.mainThread())?.subscribeBy(onComplete = {Flow.get(view).set(UserListScreen())})
+        }
     }
 
     // endregion
