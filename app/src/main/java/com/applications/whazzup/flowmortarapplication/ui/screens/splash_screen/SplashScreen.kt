@@ -43,7 +43,11 @@ class SplashScreen : AbstractScreen<RootActivity.RootComponent>() {
 
         override fun onEnterScope(scope: MortarScope?) {
             super.onEnterScope(scope)
-            mModel.getUserFromNetworkAndSaveInBd()?.subscribeOn(Schedulers.io())?.observeOn(AndroidSchedulers.mainThread())?.subscribeBy(onComplete = {Flow.get(view).set(UserListScreen())})
+            mRootPresenter.rootView?.showLoad()
+            mModel.getUserFromNetworkAndSaveInBd()?.subscribeOn(Schedulers.io())?.observeOn(AndroidSchedulers.mainThread())
+                    ?.subscribeBy(onComplete = {
+                        mRootPresenter.rootView?.hideLoad()
+                        Flow.get(view).set(UserListScreen())})
         }
     }
 

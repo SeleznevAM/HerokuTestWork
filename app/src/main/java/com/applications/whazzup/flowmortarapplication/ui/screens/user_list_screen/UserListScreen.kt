@@ -1,5 +1,6 @@
 package com.applications.whazzup.flowmortarapplication.ui.screens.user_list_screen
 
+import android.os.Bundle
 import com.applications.whazzup.flowmortarapplication.R
 import com.applications.whazzup.flowmortarapplication.data.storage.dto.UserDto
 import com.applications.whazzup.flowmortarapplication.di.DaggerScope
@@ -35,13 +36,18 @@ class UserListScreen : AbstractScreen<RootActivity.RootComponent>() {
             mRootPresenter.newActionBarBuilder().setVisible(true).setTitle("User List").build()
         }
 
-        override fun onEnterScope(scope: MortarScope?) {
-            super.onEnterScope(scope)
+        override fun onLoad(savedInstanceState: Bundle?) {
+            super.onLoad(savedInstanceState)
             mModel.getUserFromRealm().subscribeBy(onNext = {
                 view.userAdapter.addUser(UserDto(it))
             }, onComplete = {
                 view.initView()
             })
+        }
+
+        override fun onEnterScope(scope: MortarScope?) {
+            super.onEnterScope(scope)
+
         }
 
     }

@@ -8,7 +8,6 @@ interface IRootView {
     fun showError(e: Throwable)
     fun showLoad()
     fun hideLoad()
-    fun hideBottomNavigation(isVisible: Boolean)
     fun showToolbar()
     fun hideToolbar()
     val currentScreen: IView?

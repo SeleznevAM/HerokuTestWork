@@ -29,8 +29,13 @@ import javax.inject.Inject
 import android.support.v4.view.ViewCompat.setFitsSystemWindows
 import android.support.design.widget.CoordinatorLayout
 import android.R.attr.data
+import android.app.ProgressDialog
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
+import android.support.design.widget.Snackbar
 import android.util.TypedValue
-
+import android.view.MenuItem
+import android.view.WindowManager
 
 
 class RootActivity : AppCompatActivity(), IRootView, IActionBarView {
@@ -40,10 +45,14 @@ class RootActivity : AppCompatActivity(), IRootView, IActionBarView {
 
     @BindView(R.id.toolbar) lateinit var mToolbar: Toolbar
 
+    @BindView(R.id.coordinator_container) lateinit var coordinator : CoordinatorLayout
+
     @Inject
     lateinit var mRootPresenter : RootPresenter
 
     lateinit var mActionBar: android.support.v7.app.ActionBar
+
+    var mProgressDialog: ProgressDialog? = null
 
 
     override fun attachBaseContext(newBase: Context) {
@@ -63,6 +72,21 @@ class RootActivity : AppCompatActivity(), IRootView, IActionBarView {
         super.onSaveInstanceState(outState)
         BundleServiceRunner.getBundleServiceRunner(this).onSaveInstanceState(outState)
     }
+
+    override fun onBackPressed() {
+        if (!currentScreen?.viewOnBackPressed()!! && !Flow.get(this).goBack()) super.onBackPressed()
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem?): Boolean {
+        return when (item?.itemId) {
+            android.R.id.home -> {
+                Flow.get(this).goBack()
+                false
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+        }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -103,19 +127,28 @@ class RootActivity : AppCompatActivity(), IRootView, IActionBarView {
 
     // region================IRootView==============
     override fun showMessage(message: String) {
+    Snackbar.make(coordinator, message, Snackbar.LENGTH_LONG).show()
     }
 
     override fun showError(e: Throwable) {
+        Snackbar.make(coordinator, e.toString(), Snackbar.LENGTH_LONG).show()
     }
 
     override fun showLoad() {
+        mProgressDialog = ProgressDialog(this)
+        mProgressDialog!!.setCancelable(false)
+        mProgressDialog!!.window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
+        mProgressDialog!!.show()
+        mProgressDialog!!.window.clearFlags(WindowManager.LayoutParams.FLAG_DIM_BEHIND)
+        mProgressDialog!!.setContentView(R.layout.progress_dialog)
     }
 
     override fun hideLoad() {
+        if (mProgressDialog!!.isShowing) {
+            mProgressDialog!!.hide()
+        }
      }
 
-    override fun hideBottomNavigation(isVisible: Boolean) {
-    }
 
 override fun showToolbar() {
         if (supportActionBar != null) {

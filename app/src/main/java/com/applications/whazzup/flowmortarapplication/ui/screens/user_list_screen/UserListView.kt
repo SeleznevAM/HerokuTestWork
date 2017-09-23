@@ -1,9 +1,11 @@
 package com.applications.whazzup.flowmortarapplication.ui.screens.user_list_screen
 
 import android.content.Context
+import android.support.design.widget.FloatingActionButton
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
+import android.view.View
 import butterknife.BindView
 import butterknife.OnClick
 import com.applications.whazzup.flowmortarapplication.R
@@ -16,7 +18,12 @@ class UserListView(context : Context, attrs : AttributeSet) : AbstractView<UserL
 
     @BindView(R.id.user_list_recycler) lateinit var userListRecycler : RecyclerView
 
+
     var userAdapter = UserListAdapter()
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+    }
 
 
     override fun viewOnBackPressed(): Boolean {
@@ -31,6 +38,7 @@ class UserListView(context : Context, attrs : AttributeSet) : AbstractView<UserL
         with(userListRecycler){
             layoutManager = LinearLayoutManager(context)
             adapter = userAdapter
+            (adapter as UserListAdapter).addListener { Flow.get(context).set(CreateUpdateUserScreen(1, it))}
         }
     }
 
@@ -38,7 +46,7 @@ class UserListView(context : Context, attrs : AttributeSet) : AbstractView<UserL
 
     @OnClick(R.id.create_fab)
     fun fabClick(){
-        Flow.get(context).set(CreateUpdateUserScreen())
+        Flow.get(context).set(CreateUpdateUserScreen(0))
     }
 
     //endregion

@@ -4,12 +4,16 @@ import android.Manifest
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
+import android.text.Editable
 import android.util.Log
 import com.applications.whazzup.flowmortarapplication.R
+import com.applications.whazzup.flowmortarapplication.data.network.req.UserReq
 import com.applications.whazzup.flowmortarapplication.data.storage.dto.ActivityResultDto
+import com.applications.whazzup.flowmortarapplication.data.storage.dto.UserDto
 import com.applications.whazzup.flowmortarapplication.di.DaggerScope
 import com.applications.whazzup.flowmortarapplication.di.DaggerService
 import com.applications.whazzup.flowmortarapplication.flow.AbstractScreen
@@ -21,10 +25,10 @@ import com.applications.whazzup.flowmortarapplication.ui.screens.user_list_scree
 import com.applications.whazzup.flowmortarapplication.util.ConstantManager
 import com.applications.whazzup.flowmortarapplication.util.UriGetter
 import dagger.Provides
+import flow.Flow
 import flow.TreeKey
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
-import io.reactivex.observers.DisposableObserver
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import mortar.MortarScope
@@ -40,11 +44,25 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
     val EDIT_MODE = 1
 
     var editMode = -1
+    lateinit var userInfo : UserDto
 
     lateinit var mPhotoFile: File
 
+    var userAvatarUrl = ""
+
     constructor(mode : Int) : this() {
         this.editMode = mode
+
+    }
+
+    constructor(mode: Int, user : UserDto) : this() {
+        this.editMode = mode
+        userInfo = user
+        if(user.avatarUrl != null && !user.avatarUrl.isEmpty()){
+        userAvatarUrl = user.avatarUrl
+        }else{
+            userAvatarUrl = "http://img-fotki.yandex.ru/get/6834/16969765.237/0_90e7b_ab190757_orig.png"
+        }
     }
 
     override fun createScreenComponent(parentComponent: UserListScreen.UserListComponent): Any {
@@ -61,6 +79,8 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
 
         lateinit var mActivityResultSub: Disposable
 
+
+
         override fun initDagger(scope: MortarScope?) {
             scope?.getService<Component>(DaggerService.SERVICE_NAME)?.inject(this)
         }
@@ -72,6 +92,16 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
         override fun onEnterScope(scope: MortarScope?) {
             super.onEnterScope(scope)
             subscribeOnActivityResult()
+
+        }
+
+        override fun onLoad(savedInstanceState: Bundle?) {
+            super.onLoad(savedInstanceState)
+            if(editMode ==0){
+            view.initView(editMode)
+            }else{
+                view.initView(editMode, userInfo)
+            }
         }
 
         fun chooseGallery() {
@@ -96,6 +126,8 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
             val activityResultObs = mRootPresenter.mActivityResultObs.filter({ activityResultDto -> activityResultDto.resultCode === Activity.RESULT_OK })
             mActivityResultSub = activityResultObs.subscribeBy(onNext = {
                 handleActivityResult(it)
+            }, onError = {
+                mRootPresenter.rootView?.showError(it)
             })
         }
         fun handleActivityResult(activityResultDto: ActivityResultDto) {
@@ -104,29 +136,30 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
                     if (activityResultDto.data != null) {
                         var photoUrl = UriGetter.getPath(view.context, activityResultDto.data.data)
                         Log.e("AVATAR", photoUrl.toString())
-                       /* mModel.uploadPhoto(Uri.parse(photoUrl)).subscribeOn(Schedulers.io())
+
+                        mModel.uploadPhoto(Uri.parse(photoUrl)).subscribeOn(Schedulers.io())
                                 .observeOn(AndroidSchedulers.mainThread())
-                                .doOnNext {
-                                    mModel.saveAvatarUrl(it.image)
-                                    changeUserInfo(UserChangeInfoReq(mModel.getUserName(), mModel.getUserLogin(), it.image))
+                                .subscribeBy(onSuccess = {
+                                    userAvatarUrl = it.image
+                                    view.updateUserAvatar(Uri.parse(it.image))
+                                }, onError = {
+                                    Log.e("UPLOAD_PHOTO_FROM_CAM", it.stackTrace.toString())
+                                    mRootPresenter.rootView?.showMessage("Фотография не может быть загружена, попробуйте пойзже")
                                 }
-                                .subscribeBy(onComplete = {
-                                    view.updateAvatarPhoto(Uri.parse(mModel.getUserAvatar()))
-                                })*/
+                                )
                     }
                 }
                 ConstantManager.REQUEST_PROFILE_PHOTO_CAMERA -> {
                     Log.e("AVATAR", Uri.fromFile(mPhotoFile).toString())
-                   /* view.updateAvatarPhoto(Uri.fromFile(mPhotoFile))
                     mModel.uploadPhoto(Uri.fromFile(mPhotoFile)).subscribeOn(Schedulers.io())
                             .observeOn(AndroidSchedulers.mainThread())
-                            .doOnNext {
-                                mModel.saveAvatarUrl(it.image)
-                                changeUserInfo(UserChangeInfoReq(mModel.getUserName(), mModel.getUserLogin(), it.image))
-                            }
-                            .subscribeBy(onComplete = {
-                                view.updateAvatarPhoto(Uri.parse(mModel.getUserAvatar()))
-                            })*/
+                            .subscribeBy(onSuccess = {
+                                userAvatarUrl = it.image
+                                view.updateUserAvatar(Uri.parse(it.image))
+                            }, onError = {
+                                Log.e("UPLOAD_PHOTO_FROM_CAM", it.stackTrace.toString())
+                                mRootPresenter.rootView?.showMessage("Фотография не может быть загружена, попробуйте пойзже")
+                            })
                 }
             }
         }
@@ -138,6 +171,7 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
                     mPhotoFile = createImageFile()
                     if (mPhotoFile == null) {
                         rootView?.showMessage("Файл не может быть создан")
+                        return
                     }
                     takePhotoFromCamera()
                 }
@@ -160,6 +194,32 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
             val storageDir = view.context.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
             val imageFile = File.createTempFile(imageFileName, ".jpg", storageDir)
             return imageFile
+        }
+
+        fun createNewUser(firstName: Editable, lastName: Editable, mail: Editable) {
+            mModel.createUser(UserReq(firstName.toString(), lastName.toString(), mail.toString(), userAvatarUrl))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy (
+                            onSuccess = {
+                        mModel.realmManager.saveUserToRealm(it)
+                        Flow.get(view).goBack()
+                    }, onError = {
+                        mRootPresenter.rootView?.showError(it)
+                    })
+        }
+
+        fun updateUser(firstName: Editable?, lastName: Editable?, mail: Editable?) {
+            mModel.updateUser(userInfo.id, UserReq(firstName.toString(), lastName.toString(), mail.toString(), userAvatarUrl))
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .subscribeBy(onSuccess = {
+                        mModel.realmManager.saveUserToRealm(it)
+                        Flow.get(view).goBack()
+                    }, onError = {
+                        mRootPresenter.rootView?.showError(it)
+                    })
+
         }
 
     }

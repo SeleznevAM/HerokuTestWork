@@ -5,6 +5,7 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.TextView
 import butterknife.BindView
 import butterknife.ButterKnife
@@ -23,6 +24,10 @@ class UserListAdapter : RecyclerView.Adapter<UserListAdapter.UserListViewHolder>
 
     var listener: ((UserDto) -> Unit)? = null
 
+    fun addListener(onItemClick: (UserDto) -> Unit) {
+        this.listener = onItemClick
+    }
+
     fun addUser(user : UserDto){
         userList.add(user)
         notifyDataSetChanged()
@@ -37,6 +42,7 @@ class UserListAdapter : RecyclerView.Adapter<UserListAdapter.UserListViewHolder>
         val user  = userList[position]
         var path = user.avatarUrl
         if(path !=null && !path.isEmpty()) picasso.load(path).into(holder?.userAvatar)
+        else picasso.load("http://img-fotki.yandex.ru/get/6834/16969765.237/0_90e7b_ab190757_orig.png").into(holder?.userAvatar)
         holder?.userName?.text = user.firstName + " " + user.lastName
         holder?.userMail?.text = user.email
 
@@ -50,18 +56,25 @@ class UserListAdapter : RecyclerView.Adapter<UserListAdapter.UserListViewHolder>
 
     override fun onCreateViewHolder(parent: ViewGroup?, viewType: Int): UserListViewHolder {
         val inflater = LayoutInflater.from(parent?.context)
-        return UserListViewHolder(inflater.inflate(R.layout.item_user_list, parent, false))
+        return UserListViewHolder(inflater.inflate(R.layout.item_user_list, parent, false), listener)
     }
 
 
-    inner class UserListViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView){
+    inner class UserListViewHolder(itemView : View, onItemClick: ((UserDto) -> Unit)?) : RecyclerView.ViewHolder(itemView), View.OnClickListener{
+
+        override fun onClick(v: View?) {
+            listener?.invoke(userList[adapterPosition])
+        }
 
         @BindView(R.id.user_avatar) lateinit var userAvatar : CircleImageView
         @BindView(R.id.user_name) lateinit var userName : TextView
         @BindView(R.id.user_mail) lateinit var userMail : TextView
+        @BindView(R.id.item_container) lateinit var  conteiner : LinearLayout
+        var listener: ((UserDto) -> Unit)? = onItemClick
 
         init {
             ButterKnife.bind(this, itemView)
+            conteiner.setOnClickListener(this)
         }
 
     }
