@@ -15,16 +15,11 @@ class Validator {
         }
         @JvmStatic
         fun isValidateLogin(s : Editable) : Boolean{
-            val pattern = Pattern.compile("([a-zA-z0-9\\d\\u005f]){3,}")
+            val pattern = Pattern.compile("([a-zA-Zа-яА-Я0-9\\d\\u005f]){3,}")
             val matcher = pattern.matcher(s)
             return matcher.matches()
         }
-        @JvmStatic
-        fun isValidatePassword(s : Editable): Boolean {
-            val pattern = Pattern.compile("([a-zA-z0-9\\d]){8,}")
-            val matcher = pattern.matcher(s)
-            return matcher.matches()
-        }
+
     }
 
 }

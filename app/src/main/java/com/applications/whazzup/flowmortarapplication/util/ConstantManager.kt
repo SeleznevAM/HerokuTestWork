@@ -2,7 +2,7 @@ package com.applications.whazzup.flowmortarapplication.util
 
 
 object ConstantManager{
-    val MAX_CONNECTION_TIMEOUT = 5000
+    val MAX_CONNECTION_TIMEOUT = 20000
     val MAX_READ_TIMEOUT = 5000
     val MAX_WRITE_TIMEOUT = 500
 
