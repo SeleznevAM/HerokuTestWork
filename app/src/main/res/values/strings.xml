@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">FlowMortarApplication</string>
+    <string name="creat_user_toolbar_hint">Создание юзера</string>
+    <string name="update_user_toolbar_hint">Редактирование юзера</string>
+    <string name="photo_cant_download_hint">Фотография не может быть загружена, попробуйте пойзже</string>
+    <string name="file_cant_create_hint">Файл не может быть создан</string>
 </resources>

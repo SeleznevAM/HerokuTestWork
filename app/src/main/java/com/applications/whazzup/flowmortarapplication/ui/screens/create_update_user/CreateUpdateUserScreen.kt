@@ -86,7 +86,8 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
         }
 
         override fun initToolbar() {
-            mRootPresenter.newActionBarBuilder().setTitle("Создание юзера").setBackArrow(true).build()
+            if(editMode==0) mRootPresenter.newActionBarBuilder().setTitle(view.context.getString(R.string.creat_user_toolbar_hint)).setBackArrow(true).build()
+            if(editMode==1) mRootPresenter.newActionBarBuilder().setTitle(view.context.getString(R.string.update_user_toolbar_hint)).setBackArrow(true).build()
         }
 
         override fun onEnterScope(scope: MortarScope?) {
@@ -144,7 +145,7 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
                                     view.updateUserAvatar(Uri.parse(it.image))
                                 }, onError = {
                                     Log.e("UPLOAD_PHOTO_FROM_CAM", it.stackTrace.toString())
-                                    mRootPresenter.rootView?.showMessage("Фотография не может быть загружена, попробуйте пойзже")
+                                    mRootPresenter.rootView?.showMessage(view.context.getString(R.string.photo_cant_download_hint))
                                 }
                                 )
                     }
@@ -158,7 +159,7 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
                                 view.updateUserAvatar(Uri.parse(it.image))
                             }, onError = {
                                 Log.e("UPLOAD_PHOTO_FROM_CAM", it.stackTrace.toString())
-                                mRootPresenter.rootView?.showMessage("Фотография не может быть загружена, попробуйте пойзже")
+                                mRootPresenter.rootView?.showMessage(view.context.getString(R.string.photo_cant_download_hint))
                             })
                 }
             }
@@ -170,7 +171,7 @@ class CreateUpdateUserScreen() : AbstractScreen<UserListScreen.UserListComponent
                 if (mRootPresenter.checkPermissionAndRequestIfNotGranted(permissions, ConstantManager.REQUEST_PERMISSON_CAMERA)) {
                     mPhotoFile = createImageFile()
                     if (mPhotoFile == null) {
-                        rootView?.showMessage("Файл не может быть создан")
+                        rootView?.showMessage(view.context.getString(R.string.file_cant_create_hint))
                         return
                     }
                     takePhotoFromCamera()
